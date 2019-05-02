@@ -75,6 +75,8 @@ platform darwin 11 {
     }
 }
 
+# addr2line.c:1907: error: ‘for’ loop initial declaration used outside C99 mode
+compiler.blacklist-append *gcc-3.* *gcc-4.*
 
 platform darwin {
     if {${os.major} < 10} {
