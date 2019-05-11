@@ -1,11 +1,11 @@
 # -*- coding: utf-8; mode: tcl; tab-width: 4; indent-tabs-mode: nil; c-basic-offset: 4 -*- vim:fenc=utf-8:filetype=tcl:et:sw=4:ts=4:sts=4
 
 PortSystem          1.0
-PortGroup           gobject_introspection 1.0
+PortGroup           meson 1.0
 
 name                gexiv2
-version             0.10.9
-revision            1
+version             0.12.0
+revision            0
 license             GPL-2+
 set branch          [join [lrange [split ${version} .] 0 1] .]
 description         gexiv2 is a GObject-based wrapper around the exiv2 library.
@@ -22,9 +22,9 @@ master_sites        gnome:sources/${name}/${branch}/
 
 use_xz              yes
 
-checksums           rmd160  cbbd9cb12bd685f8c07d3a388370a07b49ba789b \
-                    sha256  8806234aa6fd1c345d46bf07a14e82771415071ca5ff63615b1ea62bd2fec0ed \
-                    size    380348
+checksums           rmd160  1e8f6d3cc45caf39afa7ca0b519b4de14f631b52 \
+                    sha256  58f539b0386f36300b76f3afea3a508de4914b27e78f58ee4d142486a42f926a \
+                    size    370816
 
 depends_build       port:pkgconfig \
                     port:autoconf \
@@ -36,20 +36,9 @@ depends_lib         path:lib/pkgconfig/glib-2.0.pc:glib2 \
                     port:vala \
                     port:exiv2
 
-gobject_introspection yes
-
-# the exiv2 xmp.hpp header file has been renamed to xmp_exiv2.hpp
-pre-configure {
-	reinplace -W ${worksrcpath}/gexiv2/ "s|<exiv2/xmp.hpp>|<exiv2/xmp_exiv2.hpp>|g" \
-	    gexiv2-metadata-private.h gexiv2-metadata-xmp.cpp \
-	    gexiv2-metadata.cpp gexiv2-startup.cpp
+post-extract {
+    reinplace "s|2\.0\.0|3\.0\.0|g" gexiv2/meson.build
 }
-
-configure.cmd       ./autogen.sh
-
-configure.args      --enable-compile-warnings=no \
-                    --disable-silent-rules
-
 # one each of python2 python3 allowed
 
 variant python27 description {Build Python2 bindings using Python 2.7} {
