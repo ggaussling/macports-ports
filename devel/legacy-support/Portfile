@@ -3,7 +3,7 @@
 PortSystem          1.0
 PortGroup           github 1.0
 
-github.setup        kencu macports-legacy-support 0584472ca46847a6cad7d937d22158199d0cd9ac
+github.setup        kencu macports-legacy-support ad134dc3151156861840495ccfc4ee9cddd4a39d
 version             11
 name                legacy-support
 revision            0
