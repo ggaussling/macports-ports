@@ -2,13 +2,12 @@
 
 PortSystem          1.0
 
-name                dosbox
-version             0.74
-revision            6
 categories          emulators
 platforms           darwin
 license             GPL-2+
 maintainers         nomaintainer
+name                dosbox
+subport             dosbox-sdl2 {}
 
 description         DOS emulator featuring 386 realmode, filesystem, XMS, EMS
 
@@ -18,35 +17,78 @@ long_description    DOSBox is a DOS emulator supporting 286/386 realmode, direct
                     CGA/Tandy/PCjr classics up to games from the Quake era.
 
 homepage            http://dosbox.sourceforge.net/
-master_sites        sourceforge:project/dosbox/dosbox/${version}
 
-checksums           sha1    2d99f0013350efb29b769ff19ddc8e4d86f4e77e \
-                    rmd160  4534d87206de8401cd0de471d8172726f2c6b788
 
-depends_lib         port:libsdl \
-                    port:libsdl_net \
-                    port:libsdl_sound \
-                    port:libpng
+subport dosbox {
+    version             0.74-3
+    revision            0
 
-post-extract {
-    move ${worksrcpath}/configure.in ${worksrcpath}/configure.ac
+    master_sites        sourceforge:project/dosbox/dosbox/${version}
+    checksums           rmd160  6446289c2cb20861e3e11c2d05a5d802f93b4f2d \
+                        sha256  c0d13dd7ed2ed363b68de615475781e891cd582e8162b5c3669137502222260a \
+                        size    1326339
+
+    conflicts           dosbox-sdl2
+
+    depends_lib         port:libsdl \
+                        port:libsdl_net \
+                        port:libsdl_sound \
+                        port:libpng
+
+    if {${os.platform} eq "darwin" && ${os.major} > 17} {
+        pre-fetch {
+            ui_error "${name} ${version} will not run properly on this version of macOS."
+            ui_error "Consider installing dosbox-sdl2 instead."
+            return -code error "incompatible OS X version"
+        }
+    }
+
+    # FIXME: may be needed for 32bit build
+    # configure.cxxflags-append   -mdynamic-no-pic
 }
 
-# src__cpu__core_dynrec__risc_x64.h.diff: http://www.freebsd.org/cgi/query-pr.cgi?pr=164243
-patchfiles          3689.diff 3694.diff 3776.diff 3777.diff \
-                    patch-src-fpu-fpu_instructions_x86.h.diff \
-                    src__cpu__core_dynrec__risc_x64.h.diff \
-                    clang-4.diff
+
+subport dosbox-sdl2 {
+    PortGroup           github 1.0
+
+    github.setup        duganchen dosbox e6b88ad03202d1f74e329f54f213d3b070bd6202
+    version             0.74-3_20200120
+    revision            0
+
+    checksums           rmd160  ff528976c7ad3260ac8bf07f420a9e518706fccf \
+                        sha256  5214304917deb7f633136a223205f29a50a003c835b3778ba3228c203c550938 \
+                        size    1199539
+
+    conflicts           dosbox
+
+    depends_lib         port:libsdl2 \
+                        port:libsdl2_net \
+                        port:fluidsynth \
+                        port:glew
+
+    post-extract {
+        move ${worksrcpath}/VERSION ${worksrcpath}/VERSION.txt
+    }
+    
+    configure.cxxflags-append -std=c++03 -Wno-format
+
+    use_autoreconf      yes
+    autoreconf.args     -fvi
+
+    long_description-append  This is a maintained fork of dosbox that has been enhanced to support SDL2.
+    description-append       This is a maintained fork of dosbox that has been enhanced to support SDL2.
+    
+    notes               "It is recommended to install a collection of shaders for an optimal\
+                        experience. See <https://github.com/duganchen/dosbox_shaders> for\
+                        instructions on how to download these manually. For the impatient,\
+                        this should work: \
+                        git clone https://github.com/duganchen/dosbox_shaders.git ~/Library/Preferences/shaders "
+
+}
 
 # Assembly language issues
-universal_variant no
-
-use_autoreconf      yes
-autoreconf.args     -fvi
-
-configure.args      --disable-sdltest \
-                    --disable-alsatest
-configure.cxxflags-append   -mdynamic-no-pic
+universal_variant   no
+supported_archs     i386 x86_64
 
 post-destroot {
     xinstall -m 755 -d ${destroot}${prefix}/share/doc/${name}
@@ -60,17 +102,3 @@ post-destroot {
         ${destroot}${prefix}/share/doc/${name}
 }
 
-# The 64-bit build is broken in 0.74 ("core dynamic" crashes), but even if that
-# is fixed, the 64-bit build is much slower.
-supported_archs     i386 ppc
-
-platform darwin {
-    configure.args-append --build=${configure.build_arch}-apple-darwin${os.major}
-}
-
-variant debug description {Enable debug mode} {
-    depends_lib-append port:ncurses
-    patchfiles-append patch-configure.ac.diff
-    configure.args-append --enable-debug
-    configure.cppflags-append -I${prefix}/include/ncurses
-}
