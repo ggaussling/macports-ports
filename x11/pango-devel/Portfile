@@ -2,22 +2,24 @@
 
 PortSystem              1.0
 PortGroup               active_variants 1.1
-PortGroup               gobject_introspection 1.0
+PortGroup               meson 1.0
 
 # Please keep the pango and pango-devel ports as similar as possible.
 
 name                    pango-devel
 conflicts               pango
 set my_name             pango
-version                 1.42.4
-checksums               rmd160  e91880e0e9a459bbc2c280ac747ab31f80352000 \
-                        sha256  1d2b74cd63e8bd41961f2f8d952355aa0f9be6002b52c8aa7699d9f5da597c9d \
-                        size    833876
+version                 1.44.6
+checksums               rmd160  ec6e791baaba57e81465a339e8ccee28bc0f45d2 \
+                        sha256  3e1e41ba838737e200611ff001e3b304c2ca4cdbba63d200a20db0b0ddc0f86c \
+                        size    521672
 
 set branch              [join [lrange [split ${version} .] 0 1] .]
 categories              x11
 maintainers             {ryandesign @ryandesign} openmaintainer
 license                 LGPL-2+
+license_noconflict      gobject-introspection
+
 homepage                https://www.pango.org/
 master_sites            gnome:sources/${my_name}/${branch}
 platforms               darwin
@@ -34,22 +36,42 @@ long_description \
     open-source framework for the layout and rendering \
     of internationalized text.
 
-depends_build \
-    port:pkgconfig
+depends_build-append \
+    port:pkgconfig \
+    port:gobject-introspection
 
-depends_lib \
+
+# FIXME
+# at present uses a fallback subproject for glib as our macports version is too old
+# this makes it additionally install glib2 version 2.61.3
+# this will obviously have to be changed to a new glib2 version in macports instead, but builds throug
+
+#Dependency glib-2.0 found: NO found '2.58.3' but need: '>= 2.59.2'
+#Run-time dependency glib-2.0 found: NO (tried pkgconfig, cmake and framework)
+#Looking for a fallback subproject for the dependency glib-2.0
+
+# this is needed for the glib2 subport to build, at least
+# I don't know the tricks of python; we need
+# /usr/bin/env python -> python37
+# /usr/bin/env python3 -> python37
+# so I did the following, and it worked.
+# sudo port select python python37
+# sudo port select python3 python37
+set python.version 37
+depends_build-append    port:py${python.version}-setuptools
+
+
+
+depends_lib-append \
     path:lib/pkgconfig/glib-2.0.pc:glib2 \
     path:lib/pkgconfig/cairo.pc:cairo \
     port:fribidi \
-    port:harfbuzz
+    port:harfbuzz \
+    port:fontconfig
 
-configure.args          --enable-static \
-                        --disable-silent-rules \
-                        --without-x
-
-gobject_introspection   yes
-
-license_noconflict      gobject-introspection
+configure.args-append   -Ddefault_library=both \
+                        -Dintrospection=true \
+                        -Duse_fontconfig=true
 
 platform macosx {
     variant quartz {
@@ -70,9 +92,10 @@ platform macosx {
 }
 
 variant x11 {
-    depends_lib-append      port:Xft2
-    configure.args-delete   --without-x
-    configure.args-append   --x-include=${prefix}/include \
+# not sure whether to use this or fontconfig - build seems to want fontconfig but I didn't try this
+#    depends_lib-append      port:Xft2
+#    configure.args-delete   --without-x
+#    configure.args-append   --x-include=${prefix}/include \
                             --x-lib=${prefix}/lib
 }
 
@@ -90,12 +113,37 @@ if {[variant_isset x11]} {
 post-destroot {
     set docdir ${prefix}/share/doc/${my_name}
     xinstall -d ${destroot}${docdir}
-    xinstall -m 0644 -W ${worksrcpath} AUTHORS ChangeLog COPYING MAINTAINERS NEWS README THANKS \
-        ${destroot}${docdir}
+# at least some of these extra files are no longer there
+#    xinstall -m 0644 -W ${worksrcpath} AUTHORS ChangeLog COPYING MAINTAINERS NEWS README THANKS \
+#        ${destroot}${docdir}
 }
 
 test.run                yes
 test.target             check
+
+# gobject-introspection uses g-ir-scanner, which uses $CC from env
+if {[vercmp [macports_version] 2.5.99] >= 0} {
+if {[variant_isset universal]} {
+    foreach arch ${configure.universal_archs} {
+        lappend merger_build_env(${arch})  "CC=${configure.cc} -arch ${arch}"
+        lappend merger_destroot_env(${arch})  "CC=${configure.cc} -arch ${arch}"
+    }
+} else {
+    build.env-append       "CC=${configure.cc} ${configure.cc_archflags}"
+    destroot.env-append    "CC=${configure.cc} ${configure.cc_archflags}"
+}
+} else {
+if {[variant_isset universal]} {
+    foreach arch ${configure.universal_archs} {
+        lappend merger_build_env(${arch})  CC='${configure.cc} -arch ${arch}'
+        lappend merger_destroot_env(${arch})  CC='${configure.cc} -arch ${arch}'
+    }
+} else {
+    build.env-append       CC="${configure.cc} ${configure.cc_archflags}"
+    destroot.env-append    CC="${configure.cc} ${configure.cc_archflags}"
+}
+}
+
 
 livecheck.type          gnome-with-unstable
 livecheck.name          ${my_name}
