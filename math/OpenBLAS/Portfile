@@ -28,13 +28,17 @@ platform darwin i386 {
 if {${os.major} == 9} { 
     if {${os.arch} eq "i386" || [variant_isset universal]} {
         set blas_arch "YONAH"
-    } else {
+    } else { #PPC
         set blas_arch "PPCG4"
     }
 }
 #OS 10.6 supports down to Intel Core Solo architecture
 if {${os.major} == 10} { 
-    set blas_arch "YONAH"
+    if {${build_arch} eq "i386" || [variant_isset universal]} {
+        set blas_arch "YONAH"
+    } else { #YONAH does not support 64-bit, see #58528
+        set blas_arch "CORE2"
+    }
 } 
 #OS 10.7-10.11 supports down to iMac 7,1, with Intel Core 2 Duo architecture
 #OS 10.12-13 supports down to iMac 10,1, with Intel Core 2 Duo architecture
@@ -128,12 +132,18 @@ pre-build {
                 puts $makeINC "NO_LAPACK = 1"
             }
 
+            #We set a minimal target in case native variant is not set
             if {![variant_isset native]} { 
-                #We set a minimal target in case native variant is not set
+                #PPC case for 10.5, default was set to i386 target
                 if {${build_arch} eq "ppc" || ${build_arch} eq "ppc64"} {
                     puts $makeINC "TARGET = PPCG4"
                 } else {
-                    puts $makeINC "TARGET = ${blas_arch}"
+                    #64-bit case for 10.6, default was set to i386 32-bit target
+                    if {${os.major} == 10 && ${build_arch} eq "x86_64"} {
+                        puts $makeINC "TARGET = CORE2"
+                    } else {
+                        puts $makeINC "TARGET = ${blas_arch}"
+                    }
                 }
             }
 
