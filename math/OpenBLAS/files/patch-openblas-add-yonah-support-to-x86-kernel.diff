@@ -1,0 +1,221 @@
+diff --git kernel/x86/gemm_kernel_2x4_sse3.S kernel/x86/gemm_kernel_2x4_sse3.S
+index dc2ff05..fc2527b 100644
+--- kernel/x86/gemm_kernel_2x4_sse3.S
++++ kernel/x86/gemm_kernel_2x4_sse3.S
+@@ -63,7 +63,7 @@
+ #define PREFETCHSIZE 84
+ #endif
+ 
+-#ifdef PENTIUMM
++#ifdef PENTIUMM || defined(YONAH)
+ #define PREFETCH_R   (8 * 4)
+ #define PREFETCH     prefetcht1
+ #define PREFETCHSIZE 84
+diff --git kernel/x86/gemm_kernel_4x4_sse3.S kernel/x86/gemm_kernel_4x4_sse3.S
+index 12581d9..5fdc1d4 100644
+--- kernel/x86/gemm_kernel_4x4_sse3.S
++++ kernel/x86/gemm_kernel_4x4_sse3.S
+@@ -74,7 +74,7 @@
+ #define PREFETCHSIZE   96
+ #endif
+ 
+-#ifdef PENTIUMM
++#ifdef PENTIUMM || defined(YONAH)
+ #define PREFETCH     prefetcht0
+ #define PREFETCHSIZE   96
+ #endif
+diff --git kernel/x86/trsm_kernel_LN_2x4_sse3.S kernel/x86/trsm_kernel_LN_2x4_sse3.S
+index 5b4c19b..8214c5a 100644
+--- kernel/x86/trsm_kernel_LN_2x4_sse3.S
++++ kernel/x86/trsm_kernel_LN_2x4_sse3.S
+@@ -67,7 +67,7 @@
+ #define PREFETCHSIZE 84
+ #endif
+ 
+-#ifdef PENTIUMM
++#ifdef PENTIUMM || defined(YONAH)
+ #define PREFETCH     prefetcht1
+ #define PREFETCHSIZE 84
+ #endif
+diff --git kernel/x86/trsm_kernel_LN_4x4_sse.S kernel/x86/trsm_kernel_LN_4x4_sse.S
+index 95bfb8e..72dee3f 100644
+--- kernel/x86/trsm_kernel_LN_4x4_sse.S
++++ kernel/x86/trsm_kernel_LN_4x4_sse.S
+@@ -70,7 +70,7 @@
+ #define PREFETCHSIZE (16 * 10 + 8)
+ #endif
+ 
+-#if defined(PENTIUM4) || defined(PENTIUMM)
++#if defined(PENTIUM4) || defined(PENTIUMM) || defined(YONAH)
+ #define PREFETCH     prefetcht0
+ #define PREFETCHW    prefetcht0
+ #define PREFETCHSIZE   96
+diff --git kernel/x86/trsm_kernel_LT_2x4_sse3.S kernel/x86/trsm_kernel_LT_2x4_sse3.S
+index b276166..155322e 100644
+--- kernel/x86/trsm_kernel_LT_2x4_sse3.S
++++ kernel/x86/trsm_kernel_LT_2x4_sse3.S
+@@ -67,7 +67,7 @@
+ #define PREFETCHSIZE 84
+ #endif
+ 
+-#ifdef PENTIUMM
++#ifdef PENTIUMM || defined(YONAH)
+ #define PREFETCH     prefetcht1
+ #define PREFETCHSIZE 84
+ #endif
+diff --git kernel/x86/trsm_kernel_LT_4x4_sse.S kernel/x86/trsm_kernel_LT_4x4_sse.S
+index d54dcf2..ce566e9 100644
+--- kernel/x86/trsm_kernel_LT_4x4_sse.S
++++ kernel/x86/trsm_kernel_LT_4x4_sse.S
+@@ -70,7 +70,7 @@
+ #define PREFETCHSIZE (16 * 10 + 8)
+ #endif
+ 
+-#if defined(PENTIUM4) || defined(PENTIUMM)
++#if defined(PENTIUM4) || defined(PENTIUMM) || defined(YONAH)
+ #define PREFETCH     prefetcht0
+ #define PREFETCHW    prefetcht0
+ #define PREFETCHSIZE   96
+diff --git kernel/x86/trsm_kernel_RT_2x4_sse3.S kernel/x86/trsm_kernel_RT_2x4_sse3.S
+index 792c327..55d1e2e 100644
+--- kernel/x86/trsm_kernel_RT_2x4_sse3.S
++++ kernel/x86/trsm_kernel_RT_2x4_sse3.S
+@@ -67,7 +67,7 @@
+ #define PREFETCHSIZE 84
+ #endif
+ 
+-#ifdef PENTIUMM
++#ifdef PENTIUMM || defined(YONAH)
+ #define PREFETCH     prefetcht1
+ #define PREFETCHSIZE 84
+ #endif
+diff --git kernel/x86/trsm_kernel_RT_4x4_sse.S kernel/x86/trsm_kernel_RT_4x4_sse.S
+index 743516e..9892d9c 100644
+--- kernel/x86/trsm_kernel_RT_4x4_sse.S
++++ kernel/x86/trsm_kernel_RT_4x4_sse.S
+@@ -70,7 +70,7 @@
+ #define PREFETCHSIZE (16 * 10 + 8)
+ #endif
+ 
+-#if defined(PENTIUM4) || defined(PENTIUMM)
++#if defined(PENTIUM4) || defined(PENTIUMM) || defined(YONAH)
+ #define PREFETCH     prefetcht0
+ #define PREFETCHW    prefetcht0
+ #define PREFETCHSIZE   96
+diff --git kernel/x86/zgemm3m_kernel_2x4_prescott.S kernel/x86/zgemm3m_kernel_2x4_prescott.S
+index f7cd2ae..32493ca 100644
+--- kernel/x86/zgemm3m_kernel_2x4_prescott.S
++++ kernel/x86/zgemm3m_kernel_2x4_prescott.S
+@@ -57,7 +57,7 @@
+ #define KK	 8 + STACK(%esp)
+ #define KKK	12 + STACK(%esp)
+ 
+-#if defined(PENTIUM4) || defined(PENTIUMM)
++#if defined(PENTIUM4) || defined(PENTIUMM) || defined(YONAH)
+ #define PREFETCH_R   (8 * 4)
+ #define PREFETCH     prefetcht1
+ #define PREFETCHSIZE 84
+diff --git kernel/x86/zgemm3m_kernel_4x4_prescott.S kernel/x86/zgemm3m_kernel_4x4_prescott.S
+index bdb19e1..8d93a8e 100644
+--- kernel/x86/zgemm3m_kernel_4x4_prescott.S
++++ kernel/x86/zgemm3m_kernel_4x4_prescott.S
+@@ -74,7 +74,7 @@
+ #define PREFETCHSIZE   96
+ #endif
+ 
+-#ifdef PENTIUMM
++#ifdef PENTIUMM || defined(YONAH)
+ #define PREFETCH     prefetcht0
+ #define PREFETCHSIZE   96
+ #endif
+diff --git kernel/x86/zgemm_kernel_1x2_sse3.S kernel/x86/zgemm_kernel_1x2_sse3.S
+index 774cb0f..30b6324 100644
+--- kernel/x86/zgemm_kernel_1x2_sse3.S
++++ kernel/x86/zgemm_kernel_1x2_sse3.S
+@@ -64,7 +64,7 @@
+ #define PREFETCHSIZE 84
+ #endif
+ 
+-#ifdef PENTIUMM
++#ifdef PENTIUMM || defined(YONAH)
+ #define PREFETCH_R   (8 * 4)
+ #define PREFETCH	prefetcht1
+ #define PREFETCHSIZE 84
+diff --git kernel/x86/zgemm_kernel_2x2_sse3.S kernel/x86/zgemm_kernel_2x2_sse3.S
+index 4bca5ff..29fcb14 100644
+--- kernel/x86/zgemm_kernel_2x2_sse3.S
++++ kernel/x86/zgemm_kernel_2x2_sse3.S
+@@ -78,7 +78,7 @@
+ #define PREFETCHSIZE 168
+ #endif
+ 
+-#ifdef PENTIUMM
++#ifdef PENTIUMM || defined(YONAH)
+ #define PREFETCH prefetcht0
+ #define PREFETCHSIZE 168
+ #endif
+diff --git kernel/x86/ztrsm_kernel_LN_2x2_sse.S kernel/x86/ztrsm_kernel_LN_2x2_sse.S
+index 61ce10d..27c531e 100644
+--- kernel/x86/ztrsm_kernel_LN_2x2_sse.S
++++ kernel/x86/ztrsm_kernel_LN_2x2_sse.S
+@@ -82,7 +82,7 @@
+ #define PREFETCHW     prefetchw
+ #endif
+ 
+-#if defined(PENTIUM4) || defined(PENTIUMM)
++#if defined(PENTIUM4) || defined(PENTIUMM) || defined(YONAH)
+ #define PREFETCH	prefetcht1
+ #define PREFETCHSIZE 168
+ #define PREFETCHW     prefetcht0
+diff --git kernel/x86/ztrsm_kernel_LT_1x2_sse3.S kernel/x86/ztrsm_kernel_LT_1x2_sse3.S
+index 9ab1b9d..5f49c86 100644
+--- kernel/x86/ztrsm_kernel_LT_1x2_sse3.S
++++ kernel/x86/ztrsm_kernel_LT_1x2_sse3.S
+@@ -68,7 +68,7 @@
+ #define PREFETCHSIZE 84
+ #endif
+ 
+-#ifdef PENTIUMM
++#ifdef PENTIUMM || defined(YONAH)
+ #define PREFETCH	prefetcht1
+ #define PREFETCHSIZE 84
+ #endif
+diff --git kernel/x86/ztrsm_kernel_LT_2x2_sse.S kernel/x86/ztrsm_kernel_LT_2x2_sse.S
+index a4c2ab7..5e1c650 100644
+--- kernel/x86/ztrsm_kernel_LT_2x2_sse.S
++++ kernel/x86/ztrsm_kernel_LT_2x2_sse.S
+@@ -82,7 +82,7 @@
+ #define PREFETCHW     prefetchw
+ #endif
+ 
+-#if defined(PENTIUM4) || defined(PENTIUMM)
++#if defined(PENTIUM4) || defined(PENTIUMM) || defined(YONAH)
+ #define PREFETCH	prefetcht1
+ #define PREFETCHSIZE 168
+ #define PREFETCHW     prefetcht0
+diff --git kernel/x86/ztrsm_kernel_RT_1x2_sse3.S kernel/x86/ztrsm_kernel_RT_1x2_sse3.S
+index 7f7e4d3..4239c6d 100644
+--- kernel/x86/ztrsm_kernel_RT_1x2_sse3.S
++++ kernel/x86/ztrsm_kernel_RT_1x2_sse3.S
+@@ -68,7 +68,7 @@
+ #define PREFETCHSIZE 84
+ #endif
+ 
+-#ifdef PENTIUMM
++#ifdef PENTIUMM || defined(YONAH)
+ #define PREFETCH	prefetcht1
+ #define PREFETCHSIZE 84
+ #endif
+diff --git kernel/x86/ztrsm_kernel_RT_2x2_sse.S kernel/x86/ztrsm_kernel_RT_2x2_sse.S
+index 5cd0dd5..1e02681 100644
+--- kernel/x86/ztrsm_kernel_RT_2x2_sse.S
++++ kernel/x86/ztrsm_kernel_RT_2x2_sse.S
+@@ -82,7 +82,7 @@
+ #define PREFETCHW     prefetchw
+ #endif
+ 
+-#if defined(PENTIUM4) || defined(PENTIUMM)
++#if defined(PENTIUM4) || defined(PENTIUMM) || defined(YONAH)
+ #define PREFETCH	prefetcht1
+ #define PREFETCHSIZE 168
+ #define PREFETCHW     prefetcht0
