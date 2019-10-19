@@ -11,12 +11,12 @@ PortGroup cmake         1.0
 
 set llvm_version        devel
 set llvm_version_no_dot devel
-set clang_executable_version 9
-set lldb_executable_version 9.0.0
+set clang_executable_version devel
+set lldb_executable_version devel
 name                    llvm-${llvm_version}
-revision                1
-subport                 clang-${llvm_version} { revision 1 }
-subport                 lldb-${llvm_version} { revision 1 }
+revision                0
+subport                 clang-${llvm_version} { revision 0 }
+subport                 lldb-${llvm_version} { revision 0 }
 set suffix              mp-${llvm_version}
 set sub_prefix          ${prefix}/libexec/llvm-${llvm_version}
 dist_subdir             llvm
@@ -87,7 +87,7 @@ if {${subport} eq "llvm-${llvm_version}"} {
 }
 
 fetch.type              svn
-svn.revision            365158
+svn.revision            375352
 
 depends_extract-append  port:subversion
 
@@ -176,7 +176,6 @@ if {${subport} eq "lldb-${llvm_version}"} {
         1005-Fixup-libstdc-header-search-paths-for-older-versions.patch \
         1006-Fix-build-issues-pre-Lion-due-to-missing-a-strnlen-d.patch \
         1007-Fix-float.h-to-work-on-Snow-Leopard-and-earlier.patch \
-        4001-Revert-CMake-Check-that-a-certificate-for-lldb-is-pr.patch  \
         openmp-locations.patch
 
     # https://llvm.org/bugs/show_bug.cgi?id=25681
@@ -256,7 +255,7 @@ if {${subport} eq "llvm-${llvm_version}"} {
 	    -DCOMPILER_RT_BUILD_LIBFUZZER=OFF
     }
 
-    if {${os.major} <= 14} {
+    if {${os.major} <= 15} {
         # XRAY uses TLS, MAP_ANONYMOUS, and clock_gettime, so disable it
         # on systems that don't currently support these features
         # see https://trac.macports.org/ticket/57130
@@ -294,6 +293,19 @@ compiler.blacklist *gcc* {clang < 602}
 # clang older than 3.5 fail due to https://llvm.org/bugs/show_bug.cgi?id=25753
 # new llvms build with clang-3.4 but have codegen issues resulting compiler crashes
 compiler.blacklist-append macports-clang-3.3 macports-clang-3.4
+
+# Override the normal compiler fallback list entirely since we have
+# such specific requirements.
+compiler.fallback   clang
+# Use each macports-clang version only if already installed, to avoid
+# dependency cycles or chaining (8.0 depends on 7.0 depends on 6.0...)
+foreach ver {9.0 8.0 7.0 6.0 5.0} {
+    if {[file exists ${prefix}/bin/clang-mp-${ver}]} {
+        compiler.fallback-append macports-clang-${ver}
+    }
+}
+# 3.7 is already needed to bootstrap cmake, so is a good last resort
+# when the system clang is too old.
 if {${os.platform} eq "darwin" && ${os.major} < 18} {
     compiler.fallback-append macports-clang-3.7
 }
@@ -384,6 +396,12 @@ platform darwin {
 
     if {${subport} eq "clang-${llvm_version}" && ${os.major} <= 9} {
         patchfiles-append leopard-no-blocks.patch
+    }
+
+    if {${subport} eq "clang-${llvm_version}" && ${os.major} <= 10} {
+        # the directorywatcher code in clang-9.0+ is 10.7+
+        # I believe this patch could be applied always, without a system test
+        patchfiles-append 5003-patch-no-directory-watcher-on-snowleopard.diff
     }
 
     if {${subport} eq "clang-${llvm_version}" && ${os.major} <= 14} {
@@ -492,11 +510,11 @@ if {${subport} eq "lldb-${llvm_version}"} {
     build.dir   ${build.dir}/tools/lldb
 
     post-activate {
-        ui_msg "Please follow the instructions in ${prefix}/share/doc/lldb-${llvm_version}/code-signing.txt and then codesign lldb-server with:"
+        ui_msg "Please follow the instructions at  https://lldb.llvm.org/resources/build.html#code-signing-on-macos and then codesign lldb-server with:"
         if {${os.major} >= 13} {
             ui_msg "   sudo codesign --force --deep --preserve-metadata=identifier,entitlements,resource-rules,requirements,flags,team-identifier --sign <identity> ${sub_prefix}/bin/lldb-server"
         } else {
-            ui_msg "   sudo codesign --force --deep --preserve-metadata=identifier,entitlements,resource-rules,requirements --sign <identity> ${sub_prefix}/bin/lldb-server"
+           ui_msg "   sudo codesign --force --deep --preserve-metadata=identifier,entitlements,resource-rules,requirements --sign <identity> ${sub_prefix}/bin/lldb-server"
         }
     }
 }
