@@ -1,0 +1,11 @@
+--- meson.build.orig	2019-11-24 18:13:24.000000000 -0800
++++ meson.build	2019-11-24 18:14:36.000000000 -0800
+@@ -115,7 +115,7 @@
+ 
+ platform_osx = host_os.startswith('darwin')
+ if platform_osx
+-  if cc.get_id() != 'clang'
++  if cc.get_id() != 'clang' and not have_ppc
+     error('You should use Clang/Clang++ on OSX.')
+   endif
+ endif

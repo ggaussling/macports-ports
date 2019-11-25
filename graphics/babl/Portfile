@@ -51,6 +51,26 @@ compiler.blacklist-append {clang < 300}
 #                        ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
 compiler.blacklist-append {clang > 700 < 800}
 
+platform darwin i386 {
+    # fix for older systems with 64b processors and 32b kernels
+    # meson hasn't yet figured out how to manage this combination
+    if {${os.platform} eq "darwin" && ${os.major} < 11} {
+        patchfiles-append patch-babl-meson-build-override-host-cpu.diff
+        post-patch {
+            if {[sysctl hw.cpu64bit_capable]} {
+                reinplace "s|@@HOST_MACHINE_CPU@@|x86_64|g" meson.build
+                } else {
+                reinplace "s|@@HOST_MACHINE_CPU@@|i386|g" meson.build
+            }
+        }
+    }
+}
+
+platform darwin powerpc {
+    # this patch could be always applied, but hide it here for safety
+    patchfiles-append patch-babl-meson-build-ppc.diff
+}
+
 # gobject-introspection uses g-ir-scanner, which uses $CC from env
 if {[variant_isset universal]} {
     foreach arch ${configure.universal_archs} {

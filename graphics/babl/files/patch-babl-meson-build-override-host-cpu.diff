@@ -1,0 +1,11 @@
+--- meson.build.orig	2019-11-24 17:45:10.000000000 -0800
++++ meson.build	2019-11-24 17:45:40.000000000 -0800
+@@ -79,7 +79,7 @@
+ platform_osx = false
+ platform_win32 = false
+ 
+-host_cpu = host_machine.cpu()
++host_cpu = '@@HOST_MACHINE_CPU@@'
+ message('Architecture: ' + host_cpu)
+ 
+ if   host_cpu.startswith('i') and host_cpu.endswith('86')
