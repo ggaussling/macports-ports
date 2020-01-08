@@ -1,0 +1,17 @@
+--- src/system.h.orig	2020-01-08 11:04:24.000000000 -0800
++++ src/system.h	2020-01-08 11:05:59.000000000 -0800
+@@ -73,9 +73,13 @@
+ # include <verify.h>
+ # include <xalloc.h>
+ 
++#if defined(__GNUC__)
++#define GCC_VERSION \
++	(__GNUC__ * 10000 + __GNUC_MINOR__ * 100 + __GNUC_PATCHLEVEL__)
++#endif
+ 
+ /* See https://lists.gnu.org/archive/html/bug-bison/2019-10/msg00061.html. */
+-# if defined __GNUC__ && ! defined __clang__ && ! defined __ICC && __GNUC__ < 5
++# if defined __GNUC__ && ! defined __clang__ && ! defined __ICC && __GNUC__ < 5 && (defined(GCC_VERSION) && (GCC_VERSION >= 40500))
+ #  define IGNORE_TYPE_LIMITS_BEGIN \
+      _Pragma ("GCC diagnostic push") \
+      _Pragma ("GCC diagnostic ignored \"-Wtype-limits\"")
