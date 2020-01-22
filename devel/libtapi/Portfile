@@ -114,16 +114,16 @@ if {[string match *gcc* ${configure.compiler}]} {
 # WIP at present
 if {${os.platform} eq "darwin" && ${os.major} < 18} {
 
-    variant test description {Enable building of test code} {
+    variant ${name}_test description {Enable tests} {
         test.run                yes
-        configure.args-append   -DLLVM_INCLUDE_TESTS=ON
+        configure.args-append   -DLLVM_INCLUDE_TESTS=ON -DTAPI_INCLUDE_TESTS=ON
 
         # tests error on 10.14+ due to hard-coded i386 builds
 
         # tests work on 10.13, but there is a conflict with MacPorts' ncurses port: #59992
-        # temporarily disabled the ncurses port to run the tests works
-        # perhaps defining -DNCURSES_UNCTRL_H_incl in a CMakeLists.txt could work
-
+        # the only reliable way to fix this is to edit /opt/local/include/unctrl.h
+        # and disable the SCREEN definition by changing #if 1 to #if 0
+        
         # tests did not work on 10.6.8, first due to missing architecture defines, then
         # due to other errors. Help wanted to fix these tests if possible.
         test.target             check-tapi
